@@ -13,7 +13,7 @@ from selenium.webdriver.common.keys import Keys
 #settings
 url = "https://www.larousse.fr/dictionnaires/francais/oui/"
 startNumber = 1
-endNumber = 5
+endNumber = 90000
 
 
 # Functions
@@ -36,10 +36,10 @@ def filterString(stringToVerify):
     return verifiedString
 def listToCsv(listOfWords):
     fields=['mot','definition']
-    with open('dictionnary.csv','w',newline='') as csvfile:
-        write = csvfile.writer(csvfile,delimiter=',')
-        write.writerow(fields)
-        write.writerows(listOfWords)
+    f= open('dictionnary.csv','w',newline='',encoding='utf-8')
+    write = csv.writer(f,delimiter=',')
+    write.writerow(fields)
+    write.writerows(listOfWords)
 def initWebdriver(url,startNumber):
     options = Options()
     browser = webdriver.Firefox(options=options)
