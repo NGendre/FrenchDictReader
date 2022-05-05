@@ -1,4 +1,6 @@
 import time
+import re
+import csv
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
@@ -8,61 +10,67 @@ from selenium.webdriver.common.keys import Keys
 # REQUIRES GECKODRIVER
 # MUST IMPORT SELENIUM
 
+#settings
+url = "https://www.larousse.fr/dictionnaires/francais/oui/"
+startNumber = 1
+endNumber = 5
+
+
 # Functions
 def verifyPageExists(browser):
-    if browser.find_elements(By.TAG_NAME, 'h1').__contains__("Server Error in '/dictionnaires' Application."):
-        return False
-    else:
-        return True
+    if browser.find_elements(By.TAG_NAME, 'h1'):
+        print("if 1")
+        if browser.find_element(By.TAG_NAME, 'h1').text == "Server Error in '/dictionnaires' Application.":
+            print('if 2')
+            return False
+    return True
+def filterWord(wordToVerify):
+    returnedWord = wordToVerify
+    if ',' in wordToVerify:
+        wordToVerify = wordToVerify.split(",")
+        returnedWord = wordToVerify[0]
+    return returnedWord
+def filterString(stringToVerify):
+    verifiedString = re.sub('\n','',stringToVerify)
+    verifiedString = verifiedString.replace('\ue82c ','')
+    return verifiedString
+def listToCsv(listOfWords):
+    fields=['mot','definition']
+    with open('dictionnary.csv','w',newline='') as csvfile:
+        write = csvfile.writer(csvfile,delimiter=',')
+        write.writerow(fields)
+        write.writerows(listOfWords)
+def initWebdriver(url,startNumber):
+    options = Options()
+    browser = webdriver.Firefox(options=options)
 
+    browser.get(url + str(startNumber))
+    time.sleep(2)
+    popup = browser.find_element(By.ID, "onetrust-accept-btn-handler")
+    popup.click()
+    return browser
+def wordAndDefinition(browser):
+    definitionPage = browser.find_elements(By.CLASS_NAME, "DivisionDefinition")
+    definition = []
+    for defin in definitionPage:
+        definition.append(filterString(defin.text))
+    word = filterWord(filterString(browser.find_element(By.CLASS_NAME, "AdresseDefinition").text))
+    return [word,definition]
+def readDictionnary(url,startNumber,endNumber):
+    pageIterator = startNumber
+    dictionnary = []
+    browser = initWebdriver(url,startNumber)
+    while pageIterator < endNumber:
+        print(pageIterator)
+        if (verifyPageExists(browser)):
 
-# Init webdriver
-options = Options()
+            dictionnary.append(wordAndDefinition(browser))
+        pageIterator = pageIterator + 1
+        browser.get(url + str(pageIterator))
 
-browser = webdriver.Firefox(options=options)
-url = "https://www.larousse.fr/dictionnaires/francais/oui/"
-pageIterator = 1;
-browser.get(url + str(pageIterator))
+    print(dictionnary)
+    return dictionnary
 
-time.sleep(3)
-popup = browser.find_element(By.ID, "onetrust-accept-btn-handler")
-popup.click()
-# Init dictionnary
-dictionnary = []
-time.sleep(1)
+listToCsv([['système abh', ['Ensemble des substances antigéniques ubiquitaires qui définissent les sujets des groupes sanguins A, B, AB et O.']], ['abhorrer', ["Littéraire. Éprouver de l'aversion pour quelque chose ou quelqu'un ; détester, exécrer : Abhorrer le mensonge.Synonymes :abominer - détester - exécrer - haïr - honnirContraires :adorer - affectionner - chérir"]], ['abiétacée', ["Arbre résineux tel que le sapin, l'épicéa, les diverses espèces de pin, le mélèze et le cèdre.Synonyme :pinacée"]], ['abiétique', []], ['abîme (Réf. ortho. abime)', ["1. Littéraire. Gouffre naturel, cavité, précipice d'une profondeur insondable, ou lieu, espace qui n'a pas de limites assignables.Synonyme :abysse", '2. Division, désaccord profond entre des personnes, différence importante, distance considérable entre des choses : Cette rivalité a creusé un abîme entre eux.Synonymes :barrière - fossé - gouffre - séparation', "3. Littéraire. Désastre, échec, situation désespérée : Aller, courir à l'abîme. Toucher le fond de l'abîme.", "4. En héraldique, point central de l'écu.Synonyme :cœur", "5. Dans l'iconographie chrétienne, séjour des démons, symbolisé parfois par une tête d'homme hideuse, de mine féroce, sortant du sommet d'un cône figurant le monde."]]])
 
-while pageIterator < 20:
-    if (verifyPageExists(browser)):
-        definitionPage = browser.find_elements(By.CLASS_NAME,"DivisionDefinition")
-        definition = []
-        for defin in definitionPage:
-            definition.append(defin.text)
-        word = browser.find_element(By.CLASS_NAME, "AdresseDefinition").text
-        dictionnary.append([word, definition])
-    pageIterator = pageIterator + 1
-    browser.get(url + str(pageIterator))
-    time.sleep(1)
-
-
-print(dictionnary)
-# while len(linkList)>0:
-#     wordIt = 0
-#     while wordIt<len(linkList):
-#         browser.get(linkList[wordIt])
-#         word = browser.find_element(By.CLASS_NAME, "dico").text
-#         definition = browser.find_element(By.XPATH,
-#             "/html/body/div[1]/div[2]/article/div[3]/section[1]/div/div[1]/dl[1]/dd[1]").text
-#         dictionnary.append([word, definition])
-#         browser.back()
-#         wordIt += 1
-#     pageIt+=1
-#     browser.get("https://www.universalis.fr/alpha-dictionnaire/A/"+pageIt+"/")
-#     pageRows = browser.find_element(By.XPATH, "//html/body/div[2]/div[2]/article/section[1]/div/ul")
-#     links = browser.find_elements(By.CLASS_NAME, "list-group-item-action")
-#     linkList = []
-#     for l in links:
-#         linkList.append(l.get_attribute("href"))
-
-
-# for w in words:
-#    w.click()
+#readDictionnary(url,startNumber,endNumber)
