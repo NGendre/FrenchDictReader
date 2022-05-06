@@ -49,7 +49,7 @@ def initWebdriver(url,startNumber):
     popup = browser.find_element(By.ID, "onetrust-accept-btn-handler")
     popup.click()
     return browser
-def wordAndDefinition(browser):
+def readPage(browser):
     definitionPage = browser.find_elements(By.CLASS_NAME, "DivisionDefinition")
     definition = []
     word = filterWord(filterString(browser.find_element(By.CLASS_NAME, "AdresseDefinition").text))
@@ -65,15 +65,13 @@ def readDictionnary(url,startNumber,endNumber):
     while pageIterator < endNumber:
         log(pageIterator)
         if (verifyPageExists(browser)):
-            dictionnary.append(wordAndDefinition(browser))
+            dictionnary.append(readPage(browser))
         pageIterator = pageIterator + 1
         browser.get(url + str(pageIterator))
-
-    print(dictionnary)
     return dictionnary
 def log(string):
     print(string)
 
-listToCsv([['système abh', ['Ensemble des substances antigéniques ubiquitaires qui définissent les sujets des groupes sanguins A, B, AB et O.']], ['abhorrer', ["Littéraire. Éprouver de l'aversion pour quelque chose ou quelqu'un ; détester, exécrer : Abhorrer le mensonge.Synonymes :abominer - détester - exécrer - haïr - honnirContraires :adorer - affectionner - chérir"]], ['abiétacée', ["Arbre résineux tel que le sapin, l'épicéa, les diverses espèces de pin, le mélèze et le cèdre.Synonyme :pinacée"]], ['abiétique', []], ['abîme (Réf. ortho. abime)', ["1. Littéraire. Gouffre naturel, cavité, précipice d'une profondeur insondable, ou lieu, espace qui n'a pas de limites assignables.Synonyme :abysse", '2. Division, désaccord profond entre des personnes, différence importante, distance considérable entre des choses : Cette rivalité a creusé un abîme entre eux.Synonymes :barrière - fossé - gouffre - séparation', "3. Littéraire. Désastre, échec, situation désespérée : Aller, courir à l'abîme. Toucher le fond de l'abîme.", "4. En héraldique, point central de l'écu.Synonyme :cœur", "5. Dans l'iconographie chrétienne, séjour des démons, symbolisé parfois par une tête d'homme hideuse, de mine féroce, sortant du sommet d'un cône figurant le monde."]]])
+dictionnary = readDictionnary(url,startNumber,endNumber)
+listToCsv(dictionnary)
 
-#readDictionnary(url,startNumber,endNumber)
